@@ -3,12 +3,12 @@
  var axios = require("axios");
  var Spotify = require('node-spotify-api');
  var spotify = new Spotify(keys.spotify);
-//  var omdbUrl =  "https://www.omdbapi.com/?i=tt3896198&apikey=5494fea7";
  var request = require("request");
-//  var bandsInTownApi = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
+ var moment = require("moment");
+ var fs = require("fs");
 
-var userInput = process.argv[2];
-var otherInput = process.argv[3];
+ var userInput = process.argv[2];
+ var otherInput = process.argv[3];
 
 switch(userInput) {
   case("spotify-this-song"):
@@ -24,12 +24,19 @@ switch(userInput) {
   } else {
     getMovies("Mr. Nobody")
   }
+  break;
+  case"concert-this":
+  concertThis(otherInput)
+  break;
+case"doThis":
+doWhatItSays()
+break;
 }
 
 
 //making a function for spotify this song
  function spotifyThisSong(song) {
- spotify.search({ type: 'track', query: song, limit: 1 }, function(error, data) {
+ spotify.search({ type: 'track', query: song, limit: 20 }, function(error, data) {
     if (!error) {
       for(var i = 0; i < data.tracks.items.length; i++) {
        var songInfo = data.tracks.items[i]; 
@@ -39,9 +46,9 @@ switch(userInput) {
       console.log("Album: " + songInfo.album.name);
       console.log("--------------------------")
       }
-    }
-       else {
-         console.log("Error occurred")
+        }
+          else {
+          console.log("Error occurred")
        }
       
   });
@@ -66,4 +73,33 @@ if (!error && response.statusCode == 200){
   console.log("Rotten Tomatoes URL: " + movieResults.Website);
 }
 })
+}
+
+
+//Making a function for concert-this
+function concertThis(artist) {
+axios.get("https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp")
+  .then(function (response) {
+    console.log("Venue:" + response.data[0].venue.name);
+    console.log("Location:" + response.data[0].venue.city);
+    var date = (moment(response.data[0].datetime).format("MM/DD/YYYY"));
+    console.log("Date:", date)
+    
+  })
+  .catch(function (error) {
+    // handle error
+    console.log(error);
+  })
+}
+
+
+//Writing a function for doThis
+function doWhatItSays() {
+
+  fs.readFile("random.txt", "utf8", function(error, data){
+
+     var dataArr = data.split(",");
+
+     spotifyThisSong(dataArr[1]);
+  })
 }
